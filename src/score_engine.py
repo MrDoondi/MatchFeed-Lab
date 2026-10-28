@@ -1,12 +1,34 @@
 def calculate_total_runs(innings):
+    """Calculate total runs, rejecting malformed delivery scores."""
+    total_runs = 0
 
-    Total_runs=0
+    for over in innings["overs"]:
+        for delivery in over["deliveries"]:
+            if "runs" not in delivery:
+                raise ValueError("Delivery is missing 'runs'")
 
-    for over in innings['overs']:
-        for delivery in over['deliveries']:
-            Total_runs+=delivery['runs']['total']
-    
-    return Total_runs
+            runs = delivery["runs"]
+
+            if not isinstance(runs, dict):
+                raise ValueError("Delivery 'runs' must be a dictionary")
+
+            if "total" not in runs:
+                raise ValueError("Delivery runs is missing 'total'")
+
+            total = runs["total"]
+
+            if (
+                not isinstance(total, int)
+                or isinstance(total, bool)
+                or total < 0
+            ):
+                raise ValueError(
+                    "'runs.total' must be a non-negative integer"
+                )
+
+            total_runs += total
+
+    return total_runs
 
 def calculate_wickets(innings):
 

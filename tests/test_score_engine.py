@@ -104,6 +104,93 @@ class TestScoreEngine(unittest.TestCase):
         self.assertEqual(score, 4)
         self.assertEqual(processed_events["event-001"], 4)
 
+    def test_missing_total_runs_is_rejected(self):
+        innings = {
+            "overs": [
+                {
+                    "deliveries": [
+                        {"runs": {}}
+                    ]
+                }
+            ]
+        }
+
+        with self.assertRaisesRegex(
+            ValueError, "total"
+        ):
+            calculate_total_runs(innings)
+
+    def test_missing_runs_is_rejected(self):
+        innings = {
+            "overs": [{"deliveries": [{}]}]
+        }
+
+        with self.assertRaisesRegex(ValueError, "runs"):
+            calculate_total_runs(innings)
+
+
+    def test_runs_must_be_a_dictionary(self):
+        innings = {
+            "overs": [{"deliveries": [{"runs": None}]}]
+        }
+
+        with self.assertRaisesRegex(ValueError, "dictionary"):
+            calculate_total_runs(innings)
+
+
+    def test_string_total_is_rejected(self):
+        innings = {
+            "overs": [
+                {"deliveries": [{"runs": {"total": "4"}}]}
+            ]
+        }
+
+        with self.assertRaisesRegex(ValueError, "non-negative integer"):
+            calculate_total_runs(innings)
+
+
+    def test_float_total_is_rejected(self):
+        innings = {
+            "overs": [
+                {"deliveries": [{"runs": {"total": 4.0}}]}
+            ]
+        }
+
+        with self.assertRaisesRegex(ValueError, "non-negative integer"):
+            calculate_total_runs(innings)
+
+
+    def test_negative_total_is_rejected(self):
+        innings = {
+            "overs": [
+                {"deliveries": [{"runs": {"total": -1}}]}
+            ]
+        }
+
+        with self.assertRaisesRegex(ValueError, "non-negative integer"):
+            calculate_total_runs(innings)
+
+
+    def test_boolean_total_is_rejected(self):
+        innings = {
+            "overs": [
+                {"deliveries": [{"runs": {"total": True}}]}
+            ]
+        }
+
+        with self.assertRaisesRegex(ValueError, "non-negative integer"):
+            calculate_total_runs(innings)
+
+
+    def test_zero_total_is_accepted(self):
+        innings = {
+            "overs": [
+                {"deliveries": [{"runs": {"total": 0}}]}
+            ]
+        }
+
+        self.assertEqual(calculate_total_runs(innings), 0)
+
     
 
 if __name__ == "__main__":
