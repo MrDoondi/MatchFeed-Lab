@@ -124,6 +124,50 @@ class TestPipeline(unittest.TestCase):
             ValueError, "Expected sequence 2"
         ):
             replay_innings(events, "Test Team")
+    
+    def test_empty_innings_returns_zero_totals(self):
+        result = replay_innings([], "Test Team")
+
+        self.assertEqual(result["team"], "Test Team")
+        self.assertEqual(result["runs"], 0)
+        self.assertEqual(result["wickets"], 0)
+        self.assertEqual(result["legal_balls"], 0)
+        self.assertEqual(result["deliveries_processed"], 0)
+        self.assertEqual(result["extra_runs"], 0)
+
+    def test_negative_sequence_is_rejected(self):
+        events = [
+            {
+                "sequence": -1,
+                "delivery": {
+                    "runs": {"total": 2, "extras": 0}
+                },
+            }
+        ]
+
+        with self.assertRaisesRegex(ValueError, "Expected sequence 1"):
+            replay_innings(events, "Test Team")
+
+    def test_duplicate_sequence_is_rejected(self):
+        delivery = {"runs": {"total": 1, "extras": 0}}
+        events = [
+            {"sequence": 1, "delivery": delivery},
+            {"sequence": 1, "delivery": delivery},
+        ]
+
+        with self.assertRaisesRegex(ValueError, "Expected sequence 2"):
+            replay_innings(events, "Test Team")
+
+    def test_missing_runs_field_is_rejected(self):
+        events = [
+            {
+                "sequence": 1,
+                "delivery": {},
+            }
+        ]
+
+        with self.assertRaises(KeyError):
+            replay_innings(events, "Test Team")
 
 
 if __name__ == "__main__":
